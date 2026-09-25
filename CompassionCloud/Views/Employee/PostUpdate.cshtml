@@ -1,0 +1,47 @@
+﻿@model CompassionCloud.Models.ReliefProjectUpdate
+@{
+    ViewData["Title"] = "Update Project";
+}
+
+<div class="container py-4">
+    <h2>Update Project</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="PostUpdate" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Project title</label>
+                    <input asp-for="Title" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Location" class="form-label">Location</label>
+                    <input asp-for="Location" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Update details</label>
+                    <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Add images</label>
+                    <input type="file" class="form-control" disabled />
+                    <small class="text-muted">File upload will be enabled in Part 2.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Publish Update</button>
+                <a asp-action="Dashboard" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

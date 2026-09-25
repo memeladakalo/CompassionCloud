@@ -1,0 +1,98 @@
+﻿@model CompassionCloud.Models.Volunteer
+
+@{
+    ViewData["Title"] = "Volunteer Registration";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">🤝 Volunteer Registration</h3>
+            </div>
+            <div class="card-body">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    @if (!User.Identity.IsAuthenticated)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You can <a asp-controller="Account" asp-action="Register">register an account</a> to track your volunteer history.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Hello, <strong>@User.Identity.Name</strong>!
+                            <input type="hidden" asp-for="FullName" value="@User.Identity.Name" />
+                            <input type="hidden" asp-for="Email" value="@User.Identity.Name" />
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="John Doe" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="john@example.com" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="+27 82 123 4567" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Skills" class="form-label">What skills can you offer?</label>
+                        <select asp-for="Skills" class="form-select">
+                            <option value="">Select your primary skill...</option>
+                            <option value="Medical">🏥 Medical / First Aid</option>
+                            <option value="Logistics">🚚 Logistics / Transportation</option>
+                            <option value="Administration">📋 Administration</option>
+                            <option value="IT">💻 IT / Technology</option>
+                            <option value="Social Work">🤝 Social Work / Counseling</option>
+                            <option value="Management">📊 Management / Coordination</option>
+                            <option value="Language">🗣️ Language / Translation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Skills" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Availability" class="form-label"></label>
+                        <select asp-for="Availability" class="form-select">
+                            <option value="">When are you available?</option>
+                            <option value="Weekdays">📅 Weekdays</option>
+                            <option value="Weekends">📅 Weekends</option>
+                            <option value="Evenings">🌙 Evenings</option>
+                            <option value="Full-time">⏰ Full-time</option>
+                            <option value="Flexible">🔄 Flexible</option>
+                        </select>
+                        <span asp-validation-for="Availability" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">✅ Register as Volunteer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,6 @@
+@CompassionCloud_HostAddress = http://localhost:5031
+
+GET {{CompassionCloud_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

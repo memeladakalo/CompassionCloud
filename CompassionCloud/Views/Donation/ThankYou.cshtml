@@ -1,0 +1,62 @@
+﻿@model CompassionCloud.Models.Donation
+
+@{
+    ViewData["Title"] = "Thank You!";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-success shadow-lg">
+            <div class="card-header bg-success text-white text-center">
+                <h2>🎉 Thank You for Your Donation!</h2>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745;"></i>
+                </div>
+
+                <div class="border p-4 mb-4" style="border: 2px dashed #28a745;">
+                    <h4>💌 Placeholder Tax Certificate</h4>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-6 text-start">
+                            <p><strong>Donor:</strong> @Model.DonorName</p>
+                            <p><strong>Email:</strong> @Model.DonorEmail</p>
+                        </div>
+                        <div class="col-md-6 text-start">
+                            <p><strong>Amount:</strong> @Model.Currency @Model.Amount.ToString("N2")</p>
+                            <p><strong>Type:</strong> @Model.DonationType</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 text-start">
+                            <p><strong>Reference:</strong> <code>#@Model.ReferenceNumber</code></p>
+                        </div>
+                        <div class="col-md-6 text-start">
+                            <p><strong>Date:</strong> @Model.DonationDate.ToString("dd MMM yyyy")</p>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-2">
+                        This is a placeholder tax certificate for prototype purposes.
+                        In the final system, this will be a downloadable PDF.
+                    </p>
+                </div>
+
+                @if (ViewBag.TaxCertificate != null)
+{
+                <div class="alert alert-info mt-4">
+                    <h5>🎫 Azure Function Response</h5>
+                    <pre style="white-space: pre-wrap;">@ViewBag.TaxCertificate</pre>
+                </div>
+}
+
+                <p class="lead">Thank you for supporting <strong>Gift of the Givers</strong> through <strong>Compassionate Cloud</strong>.</p>
+
+                <div class="mt-3">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">🏠 Back to Home</a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary">🖨️ Print Certificate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

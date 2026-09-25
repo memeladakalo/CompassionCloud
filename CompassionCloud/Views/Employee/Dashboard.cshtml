@@ -1,0 +1,122 @@
+﻿@using CompassionCloud.Models
+@model EmployeeDashboardViewModel
+
+@{
+    ViewData["Title"] = "Employee Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">📊 Employee Dashboard</h4>
+                    <span class="badge bg-light text-dark">Welcome, @User.Identity.Name!</span>
+                </div>
+                <div class="card-body">
+                    <!-- Post Update Form -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">📝 Post Relief Update</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (TempData["UpdateSuccess"] != null)
+                            {
+                                <div class="alert alert-success alert-dismissible fade show">
+                                    @TempData["UpdateSuccess"]
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            }
+
+                            <form asp-controller="Employee" asp-action="PostUpdate" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" name="Title" class="form-control" placeholder="Update on flood relief" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" name="Location" class="form-control" placeholder="Durban, South Africa" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="Description" class="form-control" rows="3" placeholder="Detailed update..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-info">📤 Post Update</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Recent Updates -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">📋 Recent Relief Updates</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.RecentUpdates != null && Model.RecentUpdates.Any())
+                            {
+                                <div class="list-group">
+                                    @foreach (var update in Model.RecentUpdates)
+                                    {
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@update.Title</h6>
+                                                <small>📍 @update.Location</small>
+                                            </div>
+                                            <p class="mb-1">@update.Description</p>
+                                            <small class="text-muted">Posted: @update.DatePosted.ToString("dd MMM yyyy HH:mm")</small>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted text-center">No updates posted yet.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Recent Volunteers -->
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">🤝 Recent Volunteer Sign-ups</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.RecentVolunteers != null && Model.RecentVolunteers.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Skills</th>
+                                                <th>Availability</th>
+                                                <th>Registered</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var volunteer in Model.RecentVolunteers)
+                                            {
+                                                <tr>
+                                                    <td>@volunteer.FullName</td>
+                                                    <td>@volunteer.Email</td>
+                                                    <td>@volunteer.Skills</td>
+                                                    <td>@volunteer.Availability</td>
+                                                    <td>@volunteer.RegisteredDate.ToString("dd MMM yyyy")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted text-center">No volunteers registered yet.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

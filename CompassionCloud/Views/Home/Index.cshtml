@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center">
+    <div class="jumbotron bg-light p-5 rounded-3">
+        <h1 class="display-4">☁️ Welcome to Compassion Cloud</h1>
+        <p class="lead">Empowering <strong>Gift of the Givers</strong> to bring relief when it matters most.</p>
+        <hr class="my-4" />
+        <p>Together, we can make a difference. Donate, volunteer, or stay informed about our relief efforts.</p>
+        <div class="mt-4">
+            <a asp-controller="Donation" asp-action="Index" class="btn btn-primary btn-lg me-2">❤️ Donate Now</a>
+            <a asp-controller="Volunteer" asp-action="Register" class="btn btn-success btn-lg">🤝 Volunteer</a>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">🌍 Disaster Relief</h5>
+                    <p class="card-text">We respond to disasters across the globe, providing immediate aid and long-term recovery support.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">🤲 Volunteer Network</h5>
+                    <p class="card-text">Join our community of dedicated volunteers who make relief operations possible.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">💝 Transparent Giving</h5>
+                    <p class="card-text">Every donation is tracked. Receive tax certificates and see exactly how your contributions help.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

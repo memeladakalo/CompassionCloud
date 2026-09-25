@@ -1,0 +1,89 @@
+﻿@model CompassionCloud.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Your Account";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="logo-circle mb-2">☁️</div>
+                    <h3>Create Your Account</h3>
+                    <p class="text-muted">Join the Compassion Cloud community</p>
+                </div>
+
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <!-- ROLE SELECTION CARDS -->
+                    <label class="form-label fw-bold">I am registering as:</label>
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="Role" id="roleDonor" value="Donor" checked>
+                            <label class="btn btn-outline-primary w-100 py-3" for="roleDonor">
+                                <div>❤️</div><small>Donor</small>
+                            </label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="Role" id="roleVolunteer" value="Volunteer">
+                            <label class="btn btn-outline-primary w-100 py-3" for="roleVolunteer">
+                                <div>🤝</div><small>Volunteer</small>
+                            </label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="Role" id="roleEmployee" value="Employee">
+                            <label class="btn btn-outline-primary w-100 py-3" for="roleEmployee">
+                                <div>💼</div><small>Employee</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Full Name</label>
+                        <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email address" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <input asp-for="Password" class="form-control" placeholder="Create password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="AgreeToTerms" class="form-check-input" />
+                        <label asp-for="AgreeToTerms" class="form-check-label small">
+                            I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+
+                    <p class="text-center mt-3 mb-0">
+                        Already have an account? <a asp-action="Login">Log in</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

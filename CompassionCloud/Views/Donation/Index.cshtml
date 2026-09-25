@@ -1,0 +1,180 @@
+﻿@model CompassionCloud.Models.Donation
+
+@{
+    ViewData["Title"] = "Make a Donation";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+
+            <!-- Page Header -->
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Donate</h2>
+                <p class="text-muted">Your support changes lives.</p>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Index" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <!-- Donation Type Toggle -->
+                        <label class="form-label fw-bold">Donation Type</label>
+                        <div class="btn-group w-100 mb-4" role="group">
+                            <input type="radio" class="btn-check" name="DonationType" id="oneTime"
+                                   value="One-time" checked autocomplete="off">
+                            <label class="btn btn-outline-primary py-2" for="oneTime">🔄 One-time</label>
+
+                            <input type="radio" class="btn-check" name="DonationType" id="recurring"
+                                   value="Recurring" autocomplete="off">
+                            <label class="btn btn-outline-primary py-2" for="recurring">📅 Recurring</label>
+                        </div>
+
+                        <!-- Preset Amounts -->
+                        <label class="form-label fw-bold">Select Amount</label>
+                        <div class="row g-2 mb-3">
+                            @foreach (var amt in new[] { 10, 25, 50, 100 })
+                            {
+                                <div class="col-3">
+                                    <input type="radio" class="btn-check amount-preset" name="presetAmount"
+                                           id="amt@(amt)" value="@amt"
+                                           onclick="document.getElementById('Amount').value=@amt;" />
+                                    <label class="btn btn-outline-secondary w-100 py-3" for="amt@(amt)">
+                                        $@amt
+                                    </label>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Custom Amount + Currency -->
+                        <div class="row">
+                            <div class="col-md-7 mb-3">
+                                <label asp-for="Amount" class="form-label">Other amount</label>
+                                <input asp-for="Amount" id="Amount" class="form-control"
+                                       type="number" step="0.01" placeholder="Enter amount" />
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label asp-for="Currency" class="form-label">Currency</label>
+                                <select asp-for="Currency" class="form-select">
+                                    <option value="ZAR">🇿🇦 ZAR - Rand</option>
+                                    <option value="USD">🇺🇸 USD - Dollar</option>
+                                    <option value="EUR">🇪🇺 EUR - Euro</option>
+                                </select>
+                                <span asp-validation-for="Currency" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <label class="form-label fw-bold">Payment Method</label>
+                        <div class="btn-group w-100 mb-4" role="group">
+                            <input type="radio" class="btn-check" name="PaymentMethod" id="pmCard"
+                                   value="Card" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="pmCard">💳 Card</label>
+
+                            <input type="radio" class="btn-check" name="PaymentMethod" id="pmPayPal"
+                                   value="PayPal" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="pmPayPal">🅿️ PayPal</label>
+
+                            <input type="radio" class="btn-check" name="PaymentMethod" id="pmBank"
+                                   value="BankTransfer" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="pmBank">🏦 Bank Transfer</label>
+                        </div>
+
+                        <!-- Donor Info (guest vs. authenticated) -->
+                        @if (!User.Identity!.IsAuthenticated)
+                        {
+                            <div class="alert alert-info small">
+                                <i class="fas fa-info-circle"></i> You are donating as a guest.
+                                <a asp-controller="Account" asp-action="Register">Register</a> for faster checkout.
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="DonorName" class="form-label">Full Name</label>
+                                    <input asp-for="DonorName" class="form-control" placeholder="John Doe" />
+                                    <span asp-validation-for="DonorName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="DonorEmail" class="form-label">Email</label>
+                                    <input asp-for="DonorEmail" class="form-control"
+                                           type="email" placeholder="john@example.com" />
+                                    <span asp-validation-for="DonorEmail" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success small">
+                                <i class="fas fa-check-circle"></i>
+                                You are donating as <strong>@User.Identity.Name</strong>
+                            </div>
+                            <input type="hidden" asp-for="DonorName" value="@User.Identity.Name" />
+                            <input type="hidden" asp-for="DonorEmail" value="@User.Identity.Name" />
+                        }
+
+                        <!-- Anonymous Toggle -->
+                        <div class="form-check mb-4">
+                            <input asp-for="IsAnonymous" class="form-check-input" />
+                            <label asp-for="IsAnonymous" class="form-check-label">
+                                Make this donation anonymous
+                            </label>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
+                            Continue
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- "How Your Donation Helps" Card -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">💡 How your donation helps</h6>
+                    <ul class="mb-0 small">
+                        <li><strong>R100 / $10 / €9</strong> — Provides meals for 10 families</li>
+                        <li><strong>R500 / $50 / €45</strong> — Supplies emergency shelter kits</li>
+                        <li><strong>R1000 / $100 / €90</strong> — Supports a relief team for a day</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- "Other Ways to Give" Card -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Other Ways to Give</h6>
+                    <div class="row text-center small">
+                        <div class="col-4">
+                            <div class="p-2 border rounded">🏦<br />Bank Transfer</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded">📱<br />Mobile Money</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded">🌍<br />International</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,52 @@
+﻿@model CompassionCloud.Controllers.LoginViewModel
+@{
+    ViewData["Title"] = "Welcome Back";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="logo-circle mb-2">☁️</div>
+                    <h3>Welcome Back</h3>
+                    <p class="text-muted">Log in to access your account</p>
+                </div>
+
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email Address</label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <input asp-for="Password" class="form-control" placeholder="Enter your password" />
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Log In</button>
+
+                    <div class="text-center my-3">
+                        <small class="text-muted">— Or —</small>
+                    </div>
+
+                    <a asp-action="Register" class="btn btn-outline-primary w-100">Create an account</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

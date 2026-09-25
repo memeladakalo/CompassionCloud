@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Tax Certificate";
+}
+
+<div class="container py-5">
+    <div class="card border-success shadow mx-auto" style="max-width: 700px;">
+        <div class="card-header bg-success text-white text-center">
+            <h3>🎉 Official Tax Certificate</h3>
+        </div>
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <h4>Compassion Cloud</h4>
+                <p class="text-muted small">In partnership with Gift of the Givers</p>
+            </div>
+            <hr />
+            <p><strong>Donor:</strong> @ViewBag.DonorName</p>
+            <p><strong>Tax Year:</strong> @ViewBag.TaxYear</p>
+            <p><strong>Number of Donations:</strong> @ViewBag.DonationCount</p>
+            <p><strong>Total Amount Donated:</strong> R @ViewBag.Total.ToString("N2")</p>
+            <hr />
+            <p class="text-muted small text-center">
+                This certificate acknowledges your generous contributions.
+                In the production system this will be a digitally signed PDF.
+            </p>
+            <div class="text-center mt-3">
+                <button onclick="window.print()" class="btn btn-outline-success">🖨️ Print</button>
+                <a asp-controller="Donor" asp-action="Dashboard" class="btn btn-outline-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
