@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 namespace CompassionCloud.Controllers
+
+// CI pipeline trigger test — Section C.2
 {
     public class HomeController : Controller
     {
