@@ -1,4 +1,4 @@
-﻿@model CompassionCloud.Models.ViewModels.RegisterViewModel
+@model CompassionCloud.Models.ViewModels.RegisterViewModel
 @{
     ViewData["Title"] = "Create Your Account";
 }
@@ -19,22 +19,16 @@
                     <!-- ROLE SELECTION CARDS -->
                     <label class="form-label fw-bold">I am registering as:</label>
                     <div class="row g-2 mb-3">
-                        <div class="col-4">
+                        <div class="col-6">
                             <input type="radio" class="btn-check" name="Role" id="roleDonor" value="Donor" checked>
                             <label class="btn btn-outline-primary w-100 py-3" for="roleDonor">
                                 <div>❤️</div><small>Donor</small>
                             </label>
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
                             <input type="radio" class="btn-check" name="Role" id="roleVolunteer" value="Volunteer">
                             <label class="btn btn-outline-primary w-100 py-3" for="roleVolunteer">
                                 <div>🤝</div><small>Volunteer</small>
-                            </label>
-                        </div>
-                        <div class="col-4">
-                            <input type="radio" class="btn-check" name="Role" id="roleEmployee" value="Employee">
-                            <label class="btn btn-outline-primary w-100 py-3" for="roleEmployee">
-                                <div>💼</div><small>Employee</small>
                             </label>
                         </div>
                     </div>

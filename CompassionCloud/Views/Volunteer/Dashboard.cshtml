@@ -1,0 +1,40 @@
+@using CompassionCloud.Models
+@{
+    ViewData["Title"] = "Volunteer Dashboard";
+    var registrations = (List<Volunteer>)ViewBag.Registrations;
+    var updates = (List<ReliefProjectUpdate>)ViewBag.Updates;
+}
+<h2>🤝 Volunteer Dashboard</h2>
+<p class="text-muted">Welcome, @User.Identity?.Name</p>
+
+<div class="card mb-4">
+    <div class="card-header">My volunteer registration</div>
+    <div class="card-body">
+        @if (!registrations.Any())
+        {
+            <p>You have not completed a volunteer registration yet.</p>
+            <a asp-action="Register" class="btn btn-primary">Register as a volunteer</a>
+        }
+        else
+        {
+            foreach (var r in registrations)
+            {
+                <p class="mb-1"><strong>@r.FullName</strong> - @r.Skills (@r.Availability), registered @r.RegisteredDate.ToString("dd MMM yyyy")</p>
+            }
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Latest relief updates</div>
+    <ul class="list-group list-group-flush">
+        @if (!updates.Any())
+        {
+            <li class="list-group-item text-muted">No updates posted yet.</li>
+        }
+        @foreach (var u in updates)
+        {
+            <li class="list-group-item"><strong>@u.Title</strong> <span class="text-muted">- @u.Location, @u.DatePosted.ToString("dd MMM yyyy")</span><br />@u.Description</li>
+        }
+    </ul>
+</div>

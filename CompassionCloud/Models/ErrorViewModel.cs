@@ -1,6 +1,8 @@
-﻿namespace CompassionCloud.Models
+namespace CompassionCloud.Models
 {
     public class ErrorViewModel
     {
+        public string? RequestId { get; set; }
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }

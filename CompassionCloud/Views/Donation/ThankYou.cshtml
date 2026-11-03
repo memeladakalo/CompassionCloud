@@ -1,4 +1,4 @@
-﻿@model CompassionCloud.Models.Donation
+@model CompassionCloud.Models.Donation
 
 @{
     ViewData["Title"] = "Thank You!";
@@ -24,7 +24,7 @@
                             <p><strong>Email:</strong> @Model.DonorEmail</p>
                         </div>
                         <div class="col-md-6 text-start">
-                            <p><strong>Amount:</strong> @Model.Currency @Model.Amount.ToString("N2")</p>
+                            <p><strong>Amount:</strong> @CompassionCloud.Helpers.DonationHelper.FormatDonationAmount(Model.Amount, Model.Currency)</p>
                             <p><strong>Type:</strong> @Model.DonationType</p>
                         </div>
                     </div>

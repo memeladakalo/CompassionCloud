@@ -1,8 +1,9 @@
-﻿using CompassionCloud.Models;
+using CompassionCloud.Models;
 using CompassionCloud.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace CompassionCloud.Controllers
 {
@@ -21,7 +22,7 @@ namespace CompassionCloud.Controllers
         public IActionResult Register()
         {
             var model = new Volunteer();
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity!.IsAuthenticated)
             {
                 model.FullName = User.Identity.Name;
                 model.Email = User.Identity.Name;
@@ -35,10 +36,10 @@ namespace CompassionCloud.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (User.Identity.IsAuthenticated)
+                if (User.Identity!.IsAuthenticated)
                 {
                     var user = await _userManager.GetUserAsync(User);
-                    volunteer.UserId = user.Id;
+                    volunteer.UserId = user?.Id;
                 }
 
                 volunteer.RegisteredDate = DateTime.Now;
@@ -49,13 +50,27 @@ namespace CompassionCloud.Controllers
                 return RedirectToAction("Register");
             }
 
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity!.IsAuthenticated)
             {
                 volunteer.FullName = User.Identity.Name;
                 volunteer.Email = User.Identity.Name;
             }
 
             return View(volunteer);
+        }
+
+        // GET: /Volunteer/Dashboard - the volunteer's own registration plus latest relief updates
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Dashboard()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.Registrations = user == null
+                ? new List<Volunteer>()
+                : await _context.Volunteers.Where(v => v.UserId == user.Id).ToListAsync();
+            ViewBag.Updates = await _context.ReliefProjectUpdates
+                .OrderByDescending(u => u.DatePosted).Take(5).ToListAsync();
+            return View();
         }
     }
 }

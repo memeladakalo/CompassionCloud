@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>CompassionCloud.Helpers</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Compassion Cloud Team</Authors>
+    <Company>Gift of the Givers Foundation</Company>
+    <Description>Helper utility library for the Compassion Cloud disaster relief management system. Provides donation formatting, currency conversion, tax certificate numbering, and other shared utilities.</Description>
+    <PackageTags>compassion-cloud;donations;helpers;giftofthegivers</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+</Project>

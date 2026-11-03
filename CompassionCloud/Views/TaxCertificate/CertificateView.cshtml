@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Tax Certificate";
 }
 
@@ -13,7 +13,8 @@
                 <p class="text-muted small">In partnership with Gift of the Givers</p>
             </div>
             <hr />
-            <p><strong>Donor:</strong> @ViewBag.DonorName</p>
+            <p><strong>Certificate No:</strong> @ViewBag.CertificateNumber</p>
+    <p><strong>Donor:</strong> @ViewBag.DonorName</p>
             <p><strong>Tax Year:</strong> @ViewBag.TaxYear</p>
             <p><strong>Number of Donations:</strong> @ViewBag.DonationCount</p>
             <p><strong>Total Amount Donated:</strong> R @ViewBag.Total.ToString("N2")</p>

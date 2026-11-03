@@ -1,5 +1,6 @@
-﻿using CompassionCloud.Data;
+using CompassionCloud.Data;
 using CompassionCloud.Models;
+using CompassionCloud.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -41,7 +42,8 @@ namespace CompassionCloud.Controllers
                 donation.UserId = user?.Id;
             }
 
-            donation.ReferenceNumber = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            // Reference number comes from the shared Helpers NuGet library
+            donation.ReferenceNumber = DonationHelper.GenerateDonationReference();
             donation.DonationDate = DateTime.UtcNow;
 
             _context.Donations.Add(donation);
@@ -71,7 +73,7 @@ namespace CompassionCloud.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     var responseBody = await response.Content.ReadAsStringAsync();
-                    TempData["TaxCertificate"] = responseBody;
+                    TempData["TaxCertificate"] = ExtractCertificateText(responseBody);
                 }
             }
             catch (Exception ex)
@@ -82,6 +84,23 @@ namespace CompassionCloud.Controllers
 
             TempData["DonationId"] = donation.Id;
             return RedirectToAction("ThankYou");
+        }
+
+        // The function returns JSON; show only the printable certificate text if present.
+        private static string ExtractCertificateText(string responseBody)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(responseBody);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                    doc.RootElement.TryGetProperty("certificate", out var cert) &&
+                    cert.ValueKind == JsonValueKind.String)
+                {
+                    return cert.GetString() ?? responseBody;
+                }
+            }
+            catch (JsonException) { }
+            return responseBody;
         }
 
         [HttpGet]

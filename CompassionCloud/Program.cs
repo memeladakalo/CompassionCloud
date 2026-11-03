@@ -1,4 +1,4 @@
-﻿using CompassionCloud.Data;
+using CompassionCloud.Data;
 using CompassionCloud.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +29,13 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// Send unauthenticated / unauthorised users to our own Account pages (not the default Identity UI)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
@@ -53,6 +60,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+// Lightweight health endpoint (used for smoke tests / load tests)
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 // ✅ FIRST: Apply migrations
 using (var scope = app.Services.CreateScope())

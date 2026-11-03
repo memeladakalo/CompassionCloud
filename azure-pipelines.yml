@@ -1,74 +1,198 @@
-# Azure Pipelines configuration for Compassion Cloud
-# Triggers on every commit to the primary branch
+# ============================================================================
+# Compassion Cloud – Azure Pipelines (Part 3)
+#
+#  Stage 1  Build_and_Test : runs on EVERY commit/branch
+#                            restore -> build -> unit + integration tests
+#                            -> publish web app, Functions app and SQL script
+#  Stage 2  Deploy         : runs only on master/main after Stage 1 passes
+#                            -> App Service, Azure Functions, Azure SQL
+#
+# Selenium (Category=UI) and load (Category=Load) tests need a running site
+# and a browser, so they are excluded from the build agent and run manually.
+# ============================================================================
 
 trigger:
   branches:
     include:
-      - master
-      - main
+      - '*'          # every commit on every branch triggers the tests
 
 pool:
   vmImage: 'windows-latest'
 
 variables:
   buildConfiguration: 'Release'
-  solutionFile: '**/CompassionCloud.sln'
+  solutionFile: 'CompassionCloud.sln'
 
-steps:
-# ------------------------------------------------------------
-# 1. Install the .NET SDK
-# ------------------------------------------------------------
-- task: UseDotNet@2
-  displayName: 'Install .NET 8 SDK'
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.x'
+  # ---- Azure settings: CHECK these against the Azure portal ----------------
+  azureSubscription: 'compassioncloud'                 # Azure DevOps service connection name
+  webAppName: 'CompassionCloud20260828163956'          # App Service name (from the VS publish profile)
+  webAppType: 'webAppLinux'                            # 'webApp' if the App Service is Windows
+  functionAppName: 'compassioncloud-functions'         # Function App name (from appsettings.Production.json)
+  functionAppType: 'functionApp'                       # 'functionAppLinux' if the Function App is Linux
 
-# ------------------------------------------------------------
-# 2. Restore NuGet dependencies
-# ------------------------------------------------------------
-- task: DotNetCoreCLI@2
-  displayName: 'Restore NuGet packages'
-  inputs:
-    command: 'restore'
-    projects: '$(solutionFile)'
+  # ---- Optional (NuGet publishing): publishPackage = true, feedName = <project>/<feed>
 
-# ------------------------------------------------------------
-# 3. Build the solution
-# ------------------------------------------------------------
-- task: DotNetCoreCLI@2
-  displayName: 'Build solution'
-  inputs:
-    command: 'build'
-    projects: '$(solutionFile)'
-    arguments: '--configuration $(buildConfiguration) --no-restore'
+  # ---- Azure SQL (define these in Pipelines > Edit > Variables; tick "keep secret" on sqlPassword)
+  # sqlServerName  e.g. myserver.database.windows.net
+  # sqlDatabaseName
+  # sqlAdminUser
+  # sqlPassword
 
-# ------------------------------------------------------------
-# 4. Run tests (optional, will not fail pipeline if none exist)
-# ------------------------------------------------------------
-- task: DotNetCoreCLI@2
-  displayName: 'Run unit tests'
-  inputs:
-    command: 'test'
-    projects: '**/*Tests.csproj'
-    arguments: '--configuration $(buildConfiguration) --no-build'
-  continueOnError: true
+stages:
+# ============================================================================
+# STAGE 1 – BUILD AND TEST  (Section B)
+# ============================================================================
+- stage: Build_and_Test
+  displayName: 'Build and test'
+  jobs:
+  - job: Build
+    displayName: 'Build, test, publish'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET 8 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
 
-# ------------------------------------------------------------
-# 5. Publish web app as artifact (for later deployment)
-# ------------------------------------------------------------
-- task: DotNetCoreCLI@2
-  displayName: 'Publish web app'
-  inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: '**/CompassionCloud.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/webapp --no-build'
-    zipAfterPublish: true
+    # nuget.config contains the private Azure Artifacts feed; this lets the agent authenticate to it
+    - task: NuGetAuthenticate@1
+      displayName: 'Authenticate NuGet feeds'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Upload web app artifact'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/webapp'
-    ArtifactName: 'CompassionCloudWebApp'
-    publishLocation: 'Container'
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore'
+      inputs:
+        command: 'restore'
+        projects: '$(solutionFile)'
+        feedsToUse: 'config'
+        nugetConfigPath: 'nuget.config'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build solution'
+      inputs:
+        command: 'build'
+        projects: '$(solutionFile)'
+        arguments: '--configuration $(buildConfiguration) --no-restore'
+
+    # ---- B.1 / B.2: tests run automatically on each commit; a failing test FAILS the pipeline
+    - task: DotNetCoreCLI@2
+      displayName: 'Run unit + integration tests'
+      inputs:
+        command: 'test'
+        projects: '**/CompassionCloud.Test.csproj'
+        arguments: >-
+          --configuration $(buildConfiguration) --no-build
+          --filter "Category!=UI&Category!=Load"
+          --collect "XPlat Code Coverage"
+        publishTestResults: true
+        testRunTitle: 'Unit and integration tests'
+
+    # ---- Publish deployable artefacts
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish web app'
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: 'CompassionCloud/CompassionCloud.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/web'
+        zipAfterPublish: true
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish Azure Functions app'
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: 'CompassionCloud.Functions/CompassionCloud.Functions.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/functions'
+        zipAfterPublish: true
+
+    # ---- C.3: generate an idempotent SQL script from the EF Core migrations
+    - script: dotnet tool install --global dotnet-ef --version 8.0.0
+      displayName: 'Install dotnet-ef'
+
+    - script: >-
+        dotnet ef migrations script --idempotent
+        --project CompassionCloud/CompassionCloud.csproj
+        --configuration $(buildConfiguration) --no-build
+        --output $(Build.ArtifactStagingDirectory)/sql/schema.sql
+      displayName: 'Generate SQL migration script'
+
+    # ---- Optional: pack the Helpers library and publish it to the Azure Artifacts feed (POE D.1)
+    #      Set pipeline variable  publishPackage = true  and give the project's
+    #      "Build Service" identity Contributor access on the feed (Artifacts > Feed settings > Permissions).
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack Helpers NuGet package'
+      condition: and(succeeded(), eq(variables['publishPackage'], 'true'))
+      inputs:
+        command: 'pack'
+        packagesToPack: 'CompassionCloud.Helpers/CompassionCloud.Helpers/CompassionCloud.Helpers.csproj'
+        configuration: '$(buildConfiguration)'
+        versioningScheme: 'off'
+        packDirectory: '$(Build.ArtifactStagingDirectory)/nuget'
+
+    - task: NuGetCommand@2
+      displayName: 'Push package to Azure Artifacts feed'
+      condition: and(succeeded(), eq(variables['publishPackage'], 'true'))
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/nuget/*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: '$(feedName)'          # e.g. CompassionCloud/CompassionCloudFeed
+        allowPackageConflicts: true
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload build artefacts'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'drop'
+
+# ============================================================================
+# STAGE 2 – CONTINUOUS DEPLOYMENT  (Section C) – master/main only
+# ============================================================================
+- stage: Deploy
+  displayName: 'Deploy to Azure'
+  dependsOn: Build_and_Test
+  condition: >-
+    and(succeeded(),
+        or(eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+           eq(variables['Build.SourceBranch'], 'refs/heads/main')))
+  jobs:
+  - deployment: DeployToAzure
+    displayName: 'Deploy web app, functions and database'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # artefacts from the build stage are downloaded automatically to $(Pipeline.Workspace)/drop
+
+          # C.3 – schema first, so the new code never runs against an old schema
+          - task: SqlAzureDacpacDeployment@1
+            displayName: 'Apply schema updates to Azure SQL'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              AuthenticationType: 'server'
+              ServerName: '$(sqlServerName)'
+              DatabaseName: '$(sqlDatabaseName)'
+              SqlUsername: '$(sqlAdminUser)'
+              SqlPassword: '$(sqlPassword)'
+              deployType: 'SqlTask'
+              SqlFile: '$(Pipeline.Workspace)/drop/sql/schema.sql'
+              IpDetectionMethod: 'AutoDetect'
+
+          # C.1 – ASP.NET Core web app -> App Service
+          - task: AzureWebApp@1
+            displayName: 'Deploy web app to App Service'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: '$(webAppType)'
+              appName: '$(webAppName)'
+              package: '$(Pipeline.Workspace)/drop/web/*.zip'
+
+          # C.2 – Azure Functions
+          - task: AzureFunctionApp@2
+            displayName: 'Deploy Azure Functions'
+            inputs:
+              connectedServiceNameARM: '$(azureSubscription)'
+              appType: '$(functionAppType)'
+              appName: '$(functionAppName)'
+              package: '$(Pipeline.Workspace)/drop/functions/*.zip'

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
@@ -8,10 +8,20 @@
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
+	</ItemGroup>
+	<!-- Helpers library: built from source by default (reliable on any machine / pipeline).
+	     To consume the PUBLISHED NuGet package from the Azure Artifacts feed instead (POE D.2), build with
+	       dotnet build -p:UseHelpersPackage=true
+	     after the package has been published (see nuget.config for the feed). -->
+	<ItemGroup Condition="'$(UseHelpersPackage)' != 'true'">
+		<ProjectReference Include="..\CompassionCloud.Helpers\CompassionCloud.Helpers\CompassionCloud.Helpers.csproj" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(UseHelpersPackage)' == 'true'">
+		<PackageReference Include="CompassionCloud.Helpers" Version="1.0.0" />
 	</ItemGroup>
 </Project>

@@ -1,27 +1,27 @@
+using System.Text.Json;
+using CompassionCloud.Functions.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Text;
-using System.Text.Json;
 
 namespace CompassionCloud.Functions.Functions
 {
     public class LogReliefUpdate
     {
         private readonly ILogger<LogReliefUpdate> _logger;
+        private readonly IReliefLogStore _store;
 
-        public LogReliefUpdate(ILogger<LogReliefUpdate> logger)
+        public LogReliefUpdate(ILogger<LogReliefUpdate> logger, IReliefLogStore store)
         {
             _logger = logger;
+            _store = store;
         }
 
         [Function("LogReliefUpdate")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "reliefupdates/log")]
-            HttpRequest req,
-            [Blob("relief-update-logs/{rand-guid}.json", FileAccess.Write, Connection = "AzureWebJobsStorage")]
-            Stream outputBlob)
+            HttpRequest req)
         {
             _logger.LogInformation("LogReliefUpdate function triggered.");
 
@@ -31,32 +31,36 @@ namespace CompassionCloud.Functions.Functions
             try
             {
                 data = JsonSerializer.Deserialize<ReliefUpdateLog>(
-                    requestBody,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning($"Invalid JSON: {ex.Message}");
+                _logger.LogWarning("Invalid JSON: {Message}", ex.Message);
                 return new BadRequestObjectResult(new { error = "Invalid JSON payload." });
             }
 
             if (data == null || string.IsNullOrWhiteSpace(data.Title))
-            {
                 return new BadRequestObjectResult(new { error = "Title is required." });
-            }
 
-            // Add server-side metadata
+            if (string.IsNullOrWhiteSpace(data.Location))
+                return new BadRequestObjectResult(new { error = "Location is required." });
+
+            if (data.Title.Length > 200)
+                return new BadRequestObjectResult(new { error = "Title must be 200 characters or fewer." });
+
             data.LoggedAt = DateTime.UtcNow;
 
-            // Write the update to blob storage
-            byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data, new JsonSerializerOptions
+            try
             {
-                WriteIndented = true
-            }));
+                await _store.SaveAsync(JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to write relief update to storage.");
+                return new ObjectResult(new { error = "Could not write to storage." }) { StatusCode = 500 };
+            }
 
-            await outputBlob.WriteAsync(bytes);
-
-            _logger.LogInformation($"Relief update '{data.Title}' logged to Azure Storage.");
+            _logger.LogInformation("Relief update '{Title}' logged to Azure Storage.", data.Title);
 
             return new OkObjectResult(new
             {

@@ -1,4 +1,3 @@
-﻿using CompassionCloud.Models.ViewModels;
 using CompassionCloud.Models.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +6,10 @@ namespace CompassionCloud.Controllers
 {
     public class AccountController : Controller
     {
+        // Roles a visitor may choose for themselves. Employee/Admin accounts are created by the
+        // organisation (seeded in RolesInitializer) - they can never be self-assigned.
+        private static readonly string[] SelfRegisterRoles = { "Donor", "Volunteer" };
+
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
@@ -35,15 +38,11 @@ namespace CompassionCloud.Controllers
 
             if (result.Succeeded)
             {
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
+
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                // Redirect to role-appropriate dashboard
-                if (await _userManager.IsInRoleAsync(user, "Admin"))
-                    return RedirectToAction("Dashboard", "Admin");
-                if (await _userManager.IsInRoleAsync(user, "Employee"))
-                    return RedirectToAction("Dashboard", "Employee");
-                if (await _userManager.IsInRoleAsync(user, "Volunteer"))
-                    return RedirectToAction("Dashboard", "Volunteer");
-                return RedirectToAction("Dashboard", "Donor");
+                return await RedirectToDashboardAsync(user);
             }
 
             ModelState.AddModelError("", "Invalid login attempt.");
@@ -58,9 +57,16 @@ namespace CompassionCloud.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
+
             if (!model.AgreeToTerms)
             {
                 ModelState.AddModelError("AgreeToTerms", "You must accept the terms.");
+                return View(model);
+            }
+
+            if (!SelfRegisterRoles.Contains(model.Role))
+            {
+                ModelState.AddModelError("Role", "Please choose Donor or Volunteer.");
                 return View(model);
             }
 
@@ -77,12 +83,9 @@ namespace CompassionCloud.Controllers
                 await _userManager.AddToRoleAsync(user, model.Role);
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
-                return model.Role switch
-                {
-                    "Volunteer" => RedirectToAction("Register", "Volunteer"),
-                    "Employee" => RedirectToAction("Dashboard", "Employee"),
-                    _ => RedirectToAction("Dashboard", "Donor")
-                };
+                return model.Role == "Volunteer"
+                    ? RedirectToAction("Register", "Volunteer")
+                    : RedirectToAction("Dashboard", "Donor");
             }
 
             foreach (var error in result.Errors)
@@ -98,16 +101,36 @@ namespace CompassionCloud.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        [HttpGet]
+        public IActionResult AccessDenied() => View();
+
+        // Send each role to a dashboard that actually exists.
+        private async Task<IActionResult> RedirectToDashboardAsync(IdentityUser? user)
+        {
+            if (user == null) return RedirectToAction("Index", "Home");
+
+            if (await _userManager.IsInRoleAsync(user, "Admin") ||
+                await _userManager.IsInRoleAsync(user, "Employee"))
+                return RedirectToAction("Dashboard", "Employee");
+
+            if (await _userManager.IsInRoleAsync(user, "Volunteer"))
+                return RedirectToAction("Dashboard", "Volunteer");
+
+            return RedirectToAction("Dashboard", "Donor");
+        }
     }
 
     public class LoginViewModel
     {
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
+
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.DataType(System.ComponentModel.DataAnnotations.DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
+
         public bool RememberMe { get; set; }
     }
 }

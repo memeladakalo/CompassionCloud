@@ -1,15 +1,36 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
-		<OutputType>Exe</OutputType>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<RootNamespace>CompassionCloud.Functions</RootNamespace>
-	</PropertyGroup>
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
-		<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.4" />
-		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
-	</ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CompassionCloud.Functions</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- HttpRequest / IActionResult support in the isolated worker -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.4" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="1.3.2" />
+    <!-- Azure Storage (blob) logging of relief updates -->
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.22.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CompassionCloud.Helpers\CompassionCloud.Helpers\CompassionCloud.Helpers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

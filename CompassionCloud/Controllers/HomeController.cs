@@ -1,24 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using CompassionCloud.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CompassionCloud.Controllers
-
-// CI pipeline trigger test — Section C.2
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
-        public IActionResult About()
-        {
-            return View();
-        }
+        public IActionResult About() => View();
 
-        public IActionResult Contact()
-        {
-            return View();
-        }
+        public IActionResult Contact() => View();
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error() =>
+            View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }

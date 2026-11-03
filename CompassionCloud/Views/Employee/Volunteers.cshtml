@@ -1,0 +1,24 @@
+@model List<Volunteer>
+@{
+    ViewData["Title"] = "Volunteers";
+}
+<h2>🤝 Volunteer sign-ups</h2>
+<a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm mb-3">Back to dashboard</a>
+@if (!Model.Any())
+{
+    <p class="text-muted">No volunteers have registered yet.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Skills</th><th>Availability</th><th>Registered</th></tr></thead>
+            <tbody>
+            @foreach (var v in Model)
+            {
+                <tr><td>@v.FullName</td><td>@v.Email</td><td>@v.PhoneNumber</td><td>@v.Skills</td><td>@v.Availability</td><td>@v.RegisteredDate.ToString("dd MMM yyyy")</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

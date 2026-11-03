@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CompassionCloud.Models
@@ -15,12 +15,15 @@ namespace CompassionCloud.Models
         public string DonorEmail { get; set; }
 
         [Required]
+        [Range(typeof(decimal), "1", "10000000", ErrorMessage = "Amount must be between 1 and 10,000,000.")]
         public decimal Amount { get; set; }
 
         [Required]
+        [RegularExpression("^(ZAR|USD|EUR)$", ErrorMessage = "Currency must be ZAR, USD or EUR.")]
         public string Currency { get; set; } // ZAR, USD, EUR
 
         [Required]
+        [RegularExpression("^(One-time|Recurring)$", ErrorMessage = "Donation type must be One-time or Recurring.")]
         public string DonationType { get; set; } // One-time, Recurring
 
         public DateTime DonationDate { get; set; } = DateTime.Now;

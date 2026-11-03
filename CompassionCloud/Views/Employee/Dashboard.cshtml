@@ -1,4 +1,4 @@
-﻿@using CompassionCloud.Models
+@using CompassionCloud.Models
 @model EmployeeDashboardViewModel
 
 @{
@@ -14,6 +14,16 @@
                     <span class="badge bg-light text-dark">Welcome, @User.Identity.Name!</span>
                 </div>
                 <div class="card-body">
+                    <div class="row text-center mb-4" id="dashboardStats">
+                        <div class="col-md-3"><div class="border rounded p-3"><h3>@Model.TotalVolunteers</h3><small class="text-muted">Volunteers</small></div></div>
+                        <div class="col-md-3"><div class="border rounded p-3"><h3>@Model.TotalUpdates</h3><small class="text-muted">Relief updates</small></div></div>
+                        <div class="col-md-3"><div class="border rounded p-3"><h3>@Model.TotalDonations</h3><small class="text-muted">Donations</small></div></div>
+                        <div class="col-md-3"><div class="border rounded p-3"><h3>@CompassionCloud.Helpers.DonationHelper.FormatDonationAmount(Model.TotalDonationAmount, "ZAR")</h3><small class="text-muted">Total donated</small></div></div>
+                    </div>
+                    <div class="mb-3">
+                        <a asp-action="Volunteers" class="btn btn-outline-primary btn-sm me-2">View all volunteers</a>
+                        <a asp-action="Donors" class="btn btn-outline-primary btn-sm">View all donations</a>
+                    </div>
                     <!-- Post Update Form -->
                     <div class="card mb-4">
                         <div class="card-header bg-info text-white">

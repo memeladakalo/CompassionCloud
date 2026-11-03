@@ -1,0 +1,31 @@
+@model List<Donation>
+@{
+    ViewData["Title"] = "Donations";
+}
+<h2>❤️ Donations</h2>
+<a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm mb-3">Back to dashboard</a>
+<p><strong>@ViewBag.TotalCount</strong> donations, total (all currencies): <strong>@(((decimal)ViewBag.TotalAmount).ToString("N2"))</strong></p>
+@if (!Model.Any())
+{
+    <p class="text-muted">No donations have been made yet.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead><tr><th>Reference</th><th>Donor</th><th>Amount</th><th>Type</th><th>Date</th></tr></thead>
+            <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td><code>@d.ReferenceNumber</code></td>
+                    <td>@(d.IsAnonymous ? "Anonymous" : d.DonorName)</td>
+                    <td>@CompassionCloud.Helpers.DonationHelper.FormatDonationAmount(d.Amount, d.Currency)</td>
+                    <td>@d.DonationType</td>
+                    <td>@d.DonationDate.ToString("dd MMM yyyy")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,13 +1,16 @@
+using System.Net.Mail;
+using System.Text.Json;
+using CompassionCloud.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace CompassionCloud.Functions.Functions
 {
     public class GenerateTaxCertificate
     {
+        private static readonly string[] SupportedCurrencies = { "ZAR", "USD", "EUR" };
         private readonly ILogger<GenerateTaxCertificate> _logger;
 
         public GenerateTaxCertificate(ILogger<GenerateTaxCertificate> logger)
@@ -22,33 +25,37 @@ namespace CompassionCloud.Functions.Functions
         {
             _logger.LogInformation("GenerateTaxCertificate function triggered.");
 
-            // 1. Read request body
+            // 1. Read and validate the request body
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             TaxCertificateRequest? data;
             try
             {
                 data = JsonSerializer.Deserialize<TaxCertificateRequest>(
-                    requestBody,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning($"Invalid JSON: {ex.Message}");
+                _logger.LogWarning("Invalid JSON: {Message}", ex.Message);
                 return new BadRequestObjectResult(new { error = "Invalid JSON payload." });
             }
 
             if (data == null || string.IsNullOrWhiteSpace(data.DonorName) || data.Amount <= 0)
-            {
-                return new BadRequestObjectResult(new { error = "DonorName and Amount are required." });
-            }
+                return new BadRequestObjectResult(new { error = "DonorName and a positive Amount are required." });
 
-            // 2. Generate a dummy tax certificate (text placeholder)
-            string referenceNumber = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            if (!SupportedCurrencies.Contains(data.Currency?.ToUpperInvariant()))
+                return new BadRequestObjectResult(new { error = "Currency must be ZAR, USD or EUR." });
+
+            if (!string.IsNullOrWhiteSpace(data.DonorEmail) && !IsValidEmail(data.DonorEmail))
+                return new BadRequestObjectResult(new { error = "DonorEmail is not a valid email address." });
+
+            // 2. Generate a dummy tax certificate (text placeholder).
+            //    The certificate number is formatted with the shared Helpers library.
+            string referenceNumber = DonationHelper.FormatTaxCertificateNumber(Guid.NewGuid().ToString("N")[..12]);
             string certificateContent =
                 $"""
                 ================================================
-                        COMPASSION CLOUD — TAX CERTIFICATE
+                        COMPASSION CLOUD - TAX CERTIFICATE
                 ================================================
                 Reference Number : {referenceNumber}
                 Donor Name       : {data.DonorName}
@@ -63,7 +70,7 @@ namespace CompassionCloud.Functions.Functions
                 ================================================
                 """;
 
-            _logger.LogInformation($"Tax certificate {referenceNumber} generated for {data.DonorName}.");
+            _logger.LogInformation("Tax certificate {Reference} generated.", referenceNumber);
 
             // 3. Return the certificate
             return new OkObjectResult(new
@@ -76,6 +83,12 @@ namespace CompassionCloud.Functions.Functions
                 issuedAt = DateTime.UtcNow,
                 certificate = certificateContent
             });
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            try { return new MailAddress(email).Address == email.Trim(); }
+            catch (FormatException) { return false; }
         }
     }
 
